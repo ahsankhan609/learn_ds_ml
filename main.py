@@ -1,5 +1,5 @@
 def main():
-    print("Hello from learn-ds-ml!. it is changes.")
+    print("Hello from learn-ds-ml!.")
 
 
 if __name__ == "__main__":
