@@ -78,3 +78,34 @@ marks_series.name  # 'StudentMarks_with_Dictionary'
 ```
 
 **Rule of thumb:** `marks_dict` is the column's contents; `name` is the column header.
+
+---
+
+## Reading from CSV
+
+### Why does `read_csv(..., squeeze=True)` raise `TypeError`?
+
+**Symptom:**
+
+```python
+type(pd.read_csv("subs_count.csv", squeeze=True))
+# TypeError: read_csv() got an unexpected keyword argument 'squeeze'
+```
+
+**Cause:** The `squeeze` parameter was removed from `read_csv()` in pandas 2.0. It no longer exists in pandas 3.x.
+
+**Fix:** Read the file as a DataFrame, then call `.squeeze()` on the result:
+
+```python
+subs_series = pd.read_csv("subs_count.csv").squeeze()
+type(subs_series)  # pandas.Series
+```
+
+| Approach | Works in pandas 3.x? |
+|----------|----------------------|
+| `pd.read_csv("file.csv", squeeze=True)` | No — removed |
+| `pd.read_csv("file.csv").squeeze()` | Yes — for single-column files |
+
+**Note:** `read_csv()` always returns a **DataFrame** first. For a one-column CSV like `subs_count.csv`, `.squeeze()` collapses that DataFrame into a **Series**. Multi-column files (e.g. `marks.csv`) stay as DataFrames unless you select a column explicitly.
+
+**Rule of thumb:** `read_csv()` → DataFrame; `.squeeze()` → Series when there is only one column.
