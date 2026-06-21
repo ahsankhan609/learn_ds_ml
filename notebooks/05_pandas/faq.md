@@ -109,3 +109,56 @@ type(subs_series)  # pandas.Series
 **Note:** `read_csv()` always returns a **DataFrame** first. For a one-column CSV like `subs_count.csv`, `.squeeze()` collapses that DataFrame into a **Series**. Multi-column files (e.g. `marks.csv`) stay as DataFrames unless you select a column explicitly.
 
 **Rule of thumb:** `read_csv()` → DataFrame; `.squeeze()` → Series when there is only one column.
+
+---
+
+## Sorting a Series
+
+### How do I sort a Series from any list of values?
+
+**Context:** You have a list of numbers in any order and want a sorted Series (e.g. before finding the median or building a box plot):
+
+```python
+sorted_list: list[int] = [50, 10, 70, 30, 60, 20, 40]
+sorted_series = pd.Series(sorted_list).sort_values(ignore_index=True)
+```
+
+**Question:** Can I use `.sort()` on a Series like a Python list?
+
+**Answer:** No. Pandas Series use **`.sort_values()`**, not `.sort()`. Python lists have `.sort()` / `sorted()`; Series do not.
+
+| Object | Sort method |
+|--------|-------------|
+| Python `list` | `sorted(my_list)` or `my_list.sort()` |
+| Pandas `Series` | `series.sort_values()` |
+
+**What each part does:**
+
+1. `pd.Series(sorted_list)` — builds a Series from your list (order unchanged).
+2. `.sort_values()` — sorts by **values**, ascending by default.
+3. `ignore_index=True` — resets the index to `0, 1, 2, …` after sorting (otherwise the old index labels are kept).
+
+**Example output:**
+
+```
+0    10
+1    20
+2    30
+3    40
+4    50
+5    60
+6    70
+dtype: int64
+```
+
+Change the numbers in `sorted_list` to anything you want — re-run the cell and the Series will always be sorted.
+
+**Rule of thumb:** List → `pd.Series(...).sort_values(ignore_index=True)` for a sorted Series with a clean default index.
+
+---
+
+## Box plots and outliers
+
+Box plots summarize a numeric column's distribution and make outliers easy to spot. Points beyond the whiskers are often treated as outliers during EDA.
+
+Hands-on examples will live in `notes.ipynb` in this folder. Until that section is added, open it with **Ctrl+P** → `05_pandas/notes`.
