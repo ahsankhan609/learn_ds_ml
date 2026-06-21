@@ -81,6 +81,48 @@ marks_series.name  # 'StudentMarks_with_Dictionary'
 
 ---
 
+## DataFrames and NumPy
+
+### Does a Python list vs `np.array` matter for numeric columns in a DataFrame?
+
+**Context:** When building a DataFrame from a dictionary:
+
+```python
+student_data = {
+    "Name": ["Alice", "Bob", "Charlie"],
+    "Age": [25, 30, 22],                        # Python list
+    "Age": np.array([25, 30, 22, 35, 28]),      # NumPy array — same result
+}
+student_df = pd.DataFrame(student_data)
+```
+
+**Question:** Is `Age` always treated as a NumPy array inside the DataFrame, whether I pass a list or `np.array`?
+
+**Answer:** **Yes, for plain numeric columns.** Pandas stores both as the same numpy-backed dtype (e.g. `int64` or `float64`). Passing a Python list does not keep it as a list inside the DataFrame — pandas converts it internally.
+
+| Input | What pandas stores |
+|-------|-------------------|
+| `[25, 30, 22]` (int list) | NumPy-backed `int64` column |
+| `np.array([25, 30, 22])` | Same — NumPy-backed `int64` column |
+| `["Alice", "Bob"]` (strings) | pandas `str` dtype (not a numeric NumPy array) |
+| `[1, None, 3]` (with missing values) | May use nullable `Int64`, not plain `int64` |
+
+**When to use `np.array` anyway:**
+
+- Be explicit about dtype at creation time: `np.array([...], dtype=np.int32)`
+- Run NumPy operations before building the DataFrame
+- Reuse the same array elsewhere in your code
+
+**Getting a NumPy array back out:**
+
+```python
+age_array = student_df["Age"].to_numpy()  # pandas 3.x — preferred over .values
+```
+
+**Rule of thumb:** List or `np.array` → same storage for normal numeric columns. Use `np.array` for explicit control; use `.to_numpy()` to extract a column as a NumPy array.
+
+---
+
 ## Reading from CSV
 
 ### Why does `read_csv(..., squeeze=True)` raise `TypeError`?
