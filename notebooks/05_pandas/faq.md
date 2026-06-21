@@ -184,6 +184,41 @@ html_df = pd.read_html(
 
 **Rule of thumb:** 403 from a URL in `read_html()` → add a `User-Agent` header in `storage_options`.
 
+### Why are numeric-looking columns from `read_html()` dtype `str`?
+
+**Symptom:** After loading a Wikipedia table, debt columns look numeric in `head()` but `info()` shows `str` for all columns (including the last 3 debt columns):
+
+```
+ #   Column                                   Dtype
+ 0   Country and region                       str
+ 1   General government gross debt (2025)[6]  str
+ 2   Gross debt (2022)[7]                     str
+ 3   Net debt (2021)[8]                       str
+```
+
+**Cause:** Three things combine:
+
+1. **`read_html()` parses HTML cell text** — unlike `read_csv()`, it does not auto-infer numeric types. Values start as strings.
+2. **Mixed content in debt columns** — Wikipedia uses `–` or `-` for missing data alongside numbers like `54.3`. Pandas keeps the whole column as `str` when types are mixed.
+3. **Many missing values** — e.g. `Net debt (2021)` may have only ~96 non-null rows out of 191.
+
+**How to confirm:** `describe()` on `str` columns shows `count`, `unique`, `top`, `freq` (not `mean`, `std`). If `top` is `–` or `-`, those placeholders are blocking numeric conversion.
+
+**Fix:** Clean and convert explicitly:
+
+```python
+for col in html_df.columns[1:]:
+    html_df[col] = (
+        html_df[col]
+        .replace(["–", "-"], pd.NA)
+        .astype("Float64")  # nullable float
+    )
+```
+
+Or use `pd.to_numeric(..., errors="coerce")` after replacing dashes.
+
+**Rule of thumb:** HTML tables → text first. Always check `dtypes` and clean before numeric analysis.
+
 ---
 
 ## Sorting a Series
