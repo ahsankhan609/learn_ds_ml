@@ -154,6 +154,38 @@ type(subs_series)  # pandas.Series
 
 ---
 
+## Reading from HTML
+
+### Why does `read_html(url)` return HTTP Error 403?
+
+**Symptom:**
+
+```python
+html_url = "https://en.wikipedia.org/wiki/List_of_countries_by_government_debt"
+html_df = pd.read_html(html_url, match="Country and region")[0]
+# HTTPError: HTTP Error 403: Forbidden
+```
+
+**Cause:** Sites like Wikipedia block requests with Python's default User-Agent (e.g. `Python-urllib/...`) because it looks like an unidentified bot.
+
+**Fix:** Pass a custom User-Agent via `storage_options` (pandas 2.1+). For HTTP(S) URLs, these headers are forwarded to `urllib.request.Request`:
+
+```python
+html_df = pd.read_html(
+    html_url,
+    match="Country and region",
+    storage_options={
+        "User-Agent": "Mozilla/5.0 (compatible; learn-ds-ml/1.0)"
+    },
+)[0]
+```
+
+**Alternative:** Download the HTML first with a proper User-Agent, then pass the HTML string or a local file to `read_html()`.
+
+**Rule of thumb:** 403 from a URL in `read_html()` → add a `User-Agent` header in `storage_options`.
+
+---
+
 ## Sorting a Series
 
 ### How do I sort a Series from any list of values?
